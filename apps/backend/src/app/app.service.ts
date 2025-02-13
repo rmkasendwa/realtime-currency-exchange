@@ -6,7 +6,6 @@ export class AppService {
   constructor(private currencyExchangeService: CurrencyExchangeService) {}
 
   async getData() {
-    await this.currencyExchangeService.refreshExchangeRates();
-    return { message: 'Hello API' };
+    return this.currencyExchangeService.getCurrentExchangeRates();
   }
 }
