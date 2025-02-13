@@ -1,5 +1,6 @@
 import io from 'socket.io-client';
 import { CurrencyExchangeRateChanges, LatestExchangeRates } from '../../models';
+import { getDynamicClientEnvironmentVariables } from '../environment';
 
 export type SocketConnectionOptions = {
   onCurrencyExchangeRates?: (data: LatestExchangeRates) => void;
@@ -10,7 +11,10 @@ export const initSocketConnection = async ({
   onCurrencyExchangeRates,
   onCurrencyExchangeRatesUpdate,
 }: SocketConnectionOptions = {}) => {
-  const socket = io('http://localhost:5000'); // TODO: Move to config/env
+  const { SOCKET_SERVER_HOST_URL } =
+    await getDynamicClientEnvironmentVariables();
+
+  const socket = io(SOCKET_SERVER_HOST_URL);
 
   socket.on('connect', () => {
     console.log('Connected');
