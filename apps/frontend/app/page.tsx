@@ -71,8 +71,14 @@ export default function Index() {
                       change > 0 ? 'text-green-600' : 'text-red-600'
                     }`}
                   >
-                    {change > 0 ? '+' : ''}
-                    {change.toFixed(2)}
+                    {change !== 0 ? (
+                      <>
+                        {change > 0 ? '+' : ''}
+                        {change.toFixed(2)}
+                      </>
+                    ) : (
+                      <>&nbsp;</>
+                    )}
                   </td>
                 </tr>
               ))}
