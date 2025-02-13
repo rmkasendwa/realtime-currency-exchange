@@ -1,32 +1,29 @@
+import { Logger } from '@nestjs/common';
 import {
-  MessageBody,
-  SubscribeMessage,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
   WebSocketGateway,
   WebSocketServer,
-  WsResponse,
 } from '@nestjs/websockets';
-import { from, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { Server } from 'socket.io';
+import { Socket } from 'socket.io-client';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
-export class EventsGateway {
-  @WebSocketServer()
-  server: Server;
+export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  @WebSocketServer() server: Server;
+  private readonly logger = new Logger('ChatGateway');
 
-  @SubscribeMessage('events')
-  findAll(@MessageBody() data: any): Observable<WsResponse<number>> {
-    return from([1, 2, 3]).pipe(
-      map((item) => ({ event: 'events', data: item }))
-    );
+  async handleConnection(socket: Socket) {
+    socket.emit('currencyExchangeRatesUpdate', {
+      message: 'Hello Currencies',
+    });
   }
 
-  @SubscribeMessage('identity')
-  async identity(@MessageBody() data: number): Promise<number> {
-    return data;
+  async handleDisconnect(socket: Socket): Promise<void> {
+    this.logger.log(`Client disconnected: ${socket.id}`);
   }
 }
