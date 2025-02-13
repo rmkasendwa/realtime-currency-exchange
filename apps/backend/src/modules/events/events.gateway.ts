@@ -11,32 +11,73 @@ import { CurrencyExchangeService } from '../currency-exchange/currency-exchange.
 import { CurrencyExchangeRateChanges } from '../currency-exchange/models';
 import { UserPayload } from '../../types';
 
+/**
+ * WebSocket gateway for handling real-time currency exchange events.
+ *
+ * @WebSocketGateway - Configures the WebSocket gateway with CORS settings.
+ */
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  /**
+   * WebSocket server instance.
+   */
   @WebSocketServer() server: Server;
+
+  /**
+   * Logger instance for logging gateway events.
+   */
   private readonly logger = new Logger('EventsGateway');
+
+  /**
+   * List of connected clients. This would be replaced with a database in a real-world application.
+   */
   private readonly connectedClients: Socket[] = [];
+
+  /**
+   * Interval for refreshing exchange rates (in milliseconds).
+   */
   private readonly exchangeRatesRefreshInterval = 10000;
+
+  /**
+   * Timeout for scheduling the next exchange rates refresh.
+   */
   private exchangeRatesRefreshTimeout: NodeJS.Timeout;
 
+  /**
+   * Constructor for EventsGateway.
+   *
+   * @param jwtService - Service for handling JWT operations.
+   * @param currencyExchangeService - Service for handling currency exchange operations.
+   */
   constructor(
     private readonly jwtService: JwtService,
     private readonly currencyExchangeService: CurrencyExchangeService
   ) {}
 
+  /**
+   * Lifecycle hook that is called when the module is initialized.
+   */
   async onModuleInit(): Promise<void> {
     this.logger.log('ChatGateway initialized');
   }
 
+  /**
+   * Lifecycle hook that is called when the module is destroyed.
+   */
   async onModuleDestroy(): Promise<void> {
     clearTimeout(this.exchangeRatesRefreshInterval);
     this.logger.log('ChatGateway destroyed');
   }
 
+  /**
+   * Handles a new client connection.
+   *
+   * @param socket - The connected client socket.
+   */
   async handleConnection(socket: Socket) {
     try {
       // We can use this method to authenticate the socket connection.
@@ -53,12 +94,20 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Handles client disconnection.
+   *
+   * @param socket - The disconnected client socket.
+   */
   async handleDisconnect(socket: Socket): Promise<void> {
     this.connectedClients.splice(this.connectedClients.indexOf(socket), 1);
     this.toggleExchangeRatesRefresh();
     this.logger.log(`Client disconnected: ${socket.id}`);
   }
 
+  /**
+   * Toggles the exchange rates refresh based on the number of connected clients.
+   */
   private toggleExchangeRatesRefresh() {
     if (this.connectedClients.length > 0) {
       if (!this.exchangeRatesRefreshTimeout) {
@@ -75,6 +124,9 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /**
+   * Refreshes the exchange rates and broadcasts the changes to connected clients.
+   */
   private async refreshExchangeRates() {
     const exchangeRateChanges =
       await this.currencyExchangeService.updateExchangeRates({ random: true });
@@ -84,12 +136,24 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.toggleExchangeRatesRefresh();
   }
 
+  /**
+   * Broadcasts exchange rate changes to all connected clients.
+   *
+   * @param exchangeRateChanges - The changes in exchange rates.
+   */
   private async broadcastExchangeRateChanges(
     exchangeRateChanges: CurrencyExchangeRateChanges
   ) {
     this.server.emit('currencyExchangeRatesUpdate', exchangeRateChanges);
   }
 
+  /**
+   * Extracts the JWT token from the socket's authorization header.
+   *
+   * @param socket - The client socket.
+   * @returns The extracted JWT token.
+   * @throws UnauthorizedException if the authorization header is missing or invalid.
+   */
   private extractJwtToken(socket: Socket): string {
     const authHeader = socket.handshake.headers.authorization;
     if (!authHeader)
@@ -102,6 +166,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return token;
   }
 
+  /**
+   * Authenticates the socket connection using JWT.
+   *
+   * @param socket - The client socket.
+   * @returns The authenticated user payload.
+   */
   private authenticateSocket(socket: Socket): UserPayload {
     const token = this.extractJwtToken(socket);
     return this.jwtService.verify<UserPayload>(token, {
@@ -109,6 +179,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  /**
+   * Handles connection errors by logging the error and disconnecting the socket.
+   *
+   * @param socket - The client socket.
+   * @param error - The error that occurred.
+   */
   private handleConnectionError(socket: Socket, error: Error): void {
     this.logger.error(
       `Connection error for socket ${socket.id}: ${error.message}`
