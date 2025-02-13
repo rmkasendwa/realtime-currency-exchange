@@ -1,103 +1,83 @@
-# RealtimeCurrencyExchange
+# Realtime Currency Exchange
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+This project aims to develop a Real-Time Notification System for a Fintech Application. The system uses currency exchange rates as event triggers. The backend periodically fetches exchange rates from `openexchangerates.org`, detects changes from previous rates, and sends real-time notifications to connected client applications.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+## Setup
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/node?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+This project is an Nx integrated monorepo containing two applications: the frontend and the backend. To set up the project, run `npm install` in the root directory. Ensure you have Node.js installed on your machine.
 
-## Finish your remote caching setup
+### Backend Setup
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/gWls5PmaB0)
+Create a `.env` file in the `apps/backend/` directory with the following environment variable:
 
-## Run tasks
-
-### Backend
-
-To run the dev server for your backend, use:
-
-```sh
-npx nx serve backend
+```bash
+OPEN_EXCHANGE_RATES_APP_ID=YOUR_OPEN_EXCHANGE_RATES_APP_ID
 ```
 
-To create a production bundle for the backend:
+Refer to the `.env.example` file in the `apps/backend/` directory for guidance.
 
-```sh
-npx nx build backend
+### Frontend Setup
+
+Create a `.env` file in the `apps/frontend/` directory with the following environment variable:
+
+```bash
+SOCKET_SERVER_HOST_URL=http://localhost:5000
 ```
 
-To see all available targets for the backend, run:
+Refer to the `.env.example` file in the `apps/frontend/` directory for guidance.
 
-```sh
-npx nx show project backend
+## Running the Project
+
+After setting up the project, you can run it using the following command in the root directory:
+
+```bash
+npx nx run-many -t serve dev
 ```
 
-### Frontend
+This command will start both the frontend and backend. The frontend will be available at `http://localhost:5100`, and the backend will be available at `http://localhost:5000`.
 
-To run the dev server for your frontend, use:
+### Running with Nx Globally
 
-```sh
-npx nx dev frontend
+If you prefer not to use Nx under npx, you can install Nx globally:
+
+```bash
+npm install -g nx
 ```
 
-To create a production bundle for the frontend:
+Then, run the project with:
 
-```sh
-npx nx build frontend
+```bash
+nx run-many -t serve dev
 ```
 
-To see all available targets for the frontend, run:
+### Running Applications Separately
 
-```sh
-npx nx show project frontend
+You can also run the frontend and backend separately with the following commands in the root directory:
+
+```bash
+nx serve frontend
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/node:app demo
+```bash
+nx serve backend
 ```
 
-To generate a new library, use:
+## Running with Docker
 
-```sh
-npx nx g @nx/node:lib mylib
+To run the application with Docker, create a `.env` file in the root directory with the following environment variable:
+
+```bash
+OPEN_EXCHANGE_RATES_APP_ID=YOUR_OPEN_EXCHANGE_RATES_APP_ID
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+Then, run the application with Docker Compose:
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+docker-compose up
+```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Additional Information
 
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/node?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- Ensure you have Docker and Docker Compose installed on your machine.
+- The backend fetches exchange rates every 10 seconds.
+- When exchange rate changes are detected, the backend only sends changes and not the entire list of exchange rates.
