@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { handleZodParse } from '../utils/zod';
 import {
+  CurrencyExchangeFetchOptions,
   LatestExchangeRates,
+  LatestOpenExchangeRates,
   LatestOpenExchangeRatesValidationSchema,
   OpenExchangeRatesCurrenciesValidationSchema,
 } from './models';
@@ -16,13 +18,18 @@ const apiAdapter = axios.create({
 
 @Injectable()
 export class CurrencyExchangeService {
+  private readonly baseCurrency = 'USD';
   private currencies: Record<string, string> = {};
   private prevExchangeRates: Record<string, number> = {};
   private exchangeRates: LatestExchangeRates;
 
-  async getCurrentExchangeRates() {
+  async getCurrentExchangeRates({
+    random = false,
+  }: CurrencyExchangeFetchOptions = {}) {
     if (!this.exchangeRates) {
-      await this.updateExchangeRates();
+      await this.updateExchangeRates({
+        random,
+      });
     }
     return this.exchangeRates;
   }
@@ -33,6 +40,26 @@ export class CurrencyExchangeService {
       LatestOpenExchangeRatesValidationSchema,
       response.data
     );
+  }
+
+  async randomlyGenerateLatestExchangeRates() {
+    if (!this.currencies) {
+      await this.updateCurrencies();
+    }
+
+    const rates: Record<string, number> = {};
+    for (const currencyCode of Object.keys(this.currencies)) {
+      if (currencyCode === this.baseCurrency) {
+        continue;
+      }
+      rates[currencyCode] = Math.random() * 100;
+    }
+
+    return {
+      rates,
+      timestamp: Date.now(),
+      base: this.baseCurrency,
+    } satisfies LatestOpenExchangeRates;
   }
 
   async findAllCurrencies() {
@@ -47,11 +74,18 @@ export class CurrencyExchangeService {
     this.currencies = await this.findAllCurrencies();
   }
 
-  async updateExchangeRates() {
+  async updateExchangeRates({
+    random = false,
+  }: CurrencyExchangeFetchOptions = {}) {
     if (Object.keys(this.currencies).length === 0) {
       await this.updateCurrencies();
     }
-    const { rates, timestamp, base } = await this.getLatestOpenExchangeRates();
+    const { rates, timestamp, base } = await (async () => {
+      if (random) {
+        return this.randomlyGenerateLatestExchangeRates();
+      }
+      return this.getLatestOpenExchangeRates();
+    })();
 
     this.exchangeRates = {
       lastUpdatedAt: timestamp,

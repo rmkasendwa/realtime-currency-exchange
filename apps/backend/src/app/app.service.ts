@@ -6,6 +6,8 @@ export class AppService {
   constructor(private currencyExchangeService: CurrencyExchangeService) {}
 
   async getData() {
-    return this.currencyExchangeService.getCurrentExchangeRates();
+    return this.currencyExchangeService.getCurrentExchangeRates({
+      random: true,
+    });
   }
 }
