@@ -1,0 +1,23 @@
+name: realtime-currency-exchange
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: ./apps/backend/Dockerfile
+    env_file: .env
+    environment:
+      OPEN_EXCHANGE_RATES_HOST_URL: https://openexchangerates.org/api
+      OPEN_EXCHANGE_RATES_APP_ID: ${OPEN_EXCHANGE_RATES_APP_ID}
+    ports:
+      - '5000:5000'
+  frontend:
+    build:
+      context: .
+      dockerfile: ./apps/frontend/Dockerfile
+    environment:
+      SOCKET_SERVER_HOST_URL: http://127.0.0.1:5000
+    ports:
+      - '3000:3000'
+    depends_on:
+      - backend

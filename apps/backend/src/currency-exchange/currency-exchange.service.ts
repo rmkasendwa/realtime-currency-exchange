@@ -11,7 +11,9 @@ import {
 } from './models';
 
 const apiAdapter = axios.create({
-  baseURL: process.env.OPEN_EXCHANGE_RATES_HOST_URL,
+  baseURL:
+    process.env.OPEN_EXCHANGE_RATES_HOST_URL ??
+    'https://openexchangerates.org/api',
   params: {
     app_id: process.env.OPEN_EXCHANGE_RATES_APP_ID,
   },

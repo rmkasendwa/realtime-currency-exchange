@@ -10,6 +10,14 @@
       "options": {
         "port": 5100
       }
+    },
+    "build": {
+      "executor": "@nx/next:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/frontend"
+      }
     }
   }
 }
