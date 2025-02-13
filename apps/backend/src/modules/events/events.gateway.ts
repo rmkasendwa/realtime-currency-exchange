@@ -1,14 +1,15 @@
-import { Logger } from '@nestjs/common';
+import { Logger, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Server } from 'socket.io';
-import { Socket } from 'socket.io-client';
+import { Server, Socket } from 'socket.io';
 import { CurrencyExchangeService } from '../currency-exchange/currency-exchange.service';
 import { CurrencyExchangeRateChanges } from '../currency-exchange/models';
+import { UserPayload } from '../../types';
 
 @WebSocketGateway({
   cors: {
@@ -23,6 +24,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private exchangeRatesRefreshTimeout: NodeJS.Timeout;
 
   constructor(
+    private readonly jwtService: JwtService,
     private readonly currencyExchangeService: CurrencyExchangeService
   ) {}
 
@@ -36,12 +38,19 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleConnection(socket: Socket) {
-    this.connectedClients.push(socket);
-    this.logger.log(`Client connected: ${socket.id}`);
-    const exchangeRates =
-      await this.currencyExchangeService.getCurrentExchangeRates();
-    this.toggleExchangeRatesRefresh();
-    socket.emit('currencyExchangeRates', exchangeRates);
+    try {
+      // We can use this method to authenticate the socket connection.
+      // Disabled to keep the assignment simple. Not to run down the rabbit hole.
+      // const user = this.authenticateSocket(socket);
+      this.connectedClients.push(socket);
+      this.logger.log(`Client connected: ${socket.id}`);
+      const exchangeRates =
+        await this.currencyExchangeService.getCurrentExchangeRates();
+      this.toggleExchangeRatesRefresh();
+      socket.emit('currencyExchangeRates', exchangeRates);
+    } catch (error) {
+      this.handleConnectionError(socket, error);
+    }
   }
 
   async handleDisconnect(socket: Socket): Promise<void> {
@@ -79,5 +88,32 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     exchangeRateChanges: CurrencyExchangeRateChanges
   ) {
     this.server.emit('currencyExchangeRatesUpdate', exchangeRateChanges);
+  }
+
+  private extractJwtToken(socket: Socket): string {
+    const authHeader = socket.handshake.headers.authorization;
+    if (!authHeader)
+      throw new UnauthorizedException('No authorization header found');
+
+    const [bearer, token] = authHeader.split(' ');
+    if (bearer !== 'Bearer' || !token)
+      throw new UnauthorizedException('Invalid or missing token');
+
+    return token;
+  }
+
+  private authenticateSocket(socket: Socket): UserPayload {
+    const token = this.extractJwtToken(socket);
+    return this.jwtService.verify<UserPayload>(token, {
+      secret: process.env.ACCESS_TOKEN_SECRET,
+    });
+  }
+
+  private handleConnectionError(socket: Socket, error: Error): void {
+    this.logger.error(
+      `Connection error for socket ${socket.id}: ${error.message}`
+    );
+    socket.emit('exception', 'Authentication error');
+    socket.disconnect();
   }
 }

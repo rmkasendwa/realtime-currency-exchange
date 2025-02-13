@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import { handleZodParse } from '../utils/zod';
+import { handleZodParse } from '../../utils/zod';
 import {
   CurrencyExchangeFetchOptions,
   CurrencyExchangeRateChanges,
