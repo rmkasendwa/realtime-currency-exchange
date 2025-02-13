@@ -94,16 +94,16 @@ export class CurrencyExchangeService {
       lastUpdatedAt: timestamp,
       base,
       rates: Object.entries(rates)
-        .map(([currencyCode, rate]) => ({
-          currencyName: this.currencies[currencyCode],
-          currencyCode,
+        .map(([code, rate]) => ({
+          name: this.currencies[code],
+          code,
           rate,
           change:
-            this.prevExchangeRates?.[currencyCode] != null
-              ? rate - this.prevExchangeRates[currencyCode]
+            this.prevExchangeRates?.[code] != null
+              ? rate - this.prevExchangeRates[code]
               : 0,
         }))
-        .sort((a, b) => a.currencyName.localeCompare(b.currencyName)),
+        .sort((a, b) => a.name.localeCompare(b.name)),
     };
 
     this.prevExchangeRates = rates;
@@ -116,19 +116,17 @@ export class CurrencyExchangeService {
 
     if (exchangeRateChanges.length > 0) {
       return Object.fromEntries(
-        exchangeRateChanges.map(
-          ({ currencyCode, change, currencyName, rate }) => {
-            return [
-              currencyCode,
-              {
-                currencyCode,
-                change,
-                currencyName,
-                rate,
-              },
-            ];
-          }
-        )
+        exchangeRateChanges.map(({ code, name, change, rate }) => {
+          return [
+            code,
+            {
+              code,
+              name,
+              change,
+              rate,
+            },
+          ];
+        })
       );
     }
   }

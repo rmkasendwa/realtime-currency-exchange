@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export class ExchangeRate {
-  public readonly currencyName: string;
-  public readonly currencyCode: string;
+  public readonly code: string;
+  public readonly name: string;
   public readonly rate: number;
   public readonly change: number;
 }
@@ -33,8 +33,8 @@ export type CurrencyExchangeFetchOptions = {
 
 export type CurrencyExchangeRateChanges = {
   [currencyCode: string]: {
-    currencyCode: string;
-    currencyName: string;
+    code: string;
+    name: string;
     rate: number;
     change: number;
   };
