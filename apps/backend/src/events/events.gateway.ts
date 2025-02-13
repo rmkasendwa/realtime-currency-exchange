@@ -68,7 +68,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private async refreshExchangeRates() {
     const exchangeRateChanges =
-      await this.currencyExchangeService.updateExchangeRates();
+      await this.currencyExchangeService.updateExchangeRates({ random: true });
     if (exchangeRateChanges) {
       this.broadcastExchangeRateChanges(exchangeRateChanges);
     }

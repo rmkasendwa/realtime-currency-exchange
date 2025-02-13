@@ -48,12 +48,28 @@ export class CurrencyExchangeService {
       await this.updateCurrencies();
     }
 
-    const rates: Record<string, number> = {};
-    for (const currencyCode of Object.keys(this.currencies)) {
-      if (currencyCode === this.baseCurrency) {
-        continue;
+    const baseRates = await (async () => {
+      if (!this.exchangeRates) {
+        const { rates } = await this.getLatestOpenExchangeRates();
+
+        return Object.entries(rates).map(([code, rate]) => {
+          return {
+            code,
+            rate,
+          };
+        });
       }
-      rates[currencyCode] = Math.random() * 100;
+      return this.exchangeRates.rates.map(({ code, rate }) => {
+        return {
+          code,
+          rate,
+        };
+      });
+    })();
+
+    const rates: Record<string, number> = {};
+    for (const rate of baseRates) {
+      rates[rate.code] = rate.rate * (1 + (Math.random() * 0.1 - 0.05));
     }
 
     return {
@@ -93,17 +109,15 @@ export class CurrencyExchangeService {
     this.exchangeRates = {
       lastUpdatedAt: timestamp,
       base,
-      rates: Object.entries(rates)
-        .map(([code, rate]) => ({
-          name: this.currencies[code],
-          code,
-          rate,
-          change:
-            this.prevExchangeRates?.[code] != null
-              ? rate - this.prevExchangeRates[code]
-              : 0,
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
+      rates: Object.entries(rates).map(([code, rate]) => ({
+        name: this.currencies[code],
+        code,
+        rate,
+        change:
+          this.prevExchangeRates?.[code] != null
+            ? rate - this.prevExchangeRates[code]
+            : 0,
+      })),
     };
 
     this.prevExchangeRates = rates;
