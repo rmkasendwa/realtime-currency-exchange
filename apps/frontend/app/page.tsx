@@ -1,22 +1,36 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { initSocketConnection } from '../lib/SocketAdapter';
-
-const forexData = [
-  { name: 'US Dollar', code: 'USD', rate: 1.0, change: 0.02 },
-  { name: 'Euro', code: 'EUR', rate: 0.92, change: -0.01 },
-  { name: 'British Pound', code: 'GBP', rate: 0.78, change: 0.03 },
-  { name: 'Japanese Yen', code: 'JPY', rate: 113.45, change: -0.05 },
-  { name: 'Australian Dollar', code: 'AUD', rate: 1.45, change: 0.01 },
-];
+import { ExchangeRate } from '../models';
 
 export default function Index() {
+  const [rates, setRates] = useState<ExchangeRate[]>([]);
+
   useEffect(() => {
-    initSocketConnection();
+    initSocketConnection({
+      onCurrencyExchangeRates: (data) => {
+        setRates(data.rates);
+      },
+      onCurrencyExchangeRatesUpdate: (data) => {
+        setRates((prevRates) => {
+          return prevRates.map((prevRate) => {
+            const updatedRate = data[prevRate.code];
+            if (updatedRate) {
+              return {
+                ...prevRate,
+                ...updatedRate,
+              };
+            }
+            return prevRate;
+          });
+        });
+      },
+    });
   }, []);
+
   return (
     <div className="min-h-screen bg-gray-100">
-      <nav className="bg-blue-600 text-white p-4 shadow-md">
+      <nav className="bg-blue-600 text-white p-4 shadow-md sticky top-0">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <h1 className="text-lg font-semibold">Realtime Exchange</h1>
           <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
@@ -45,24 +59,20 @@ export default function Index() {
               </tr>
             </thead>
             <tbody>
-              {forexData.map((currency, index) => (
-                <tr key={index} className="border border-gray-300">
-                  <td className="border border-gray-300 px-4 py-2">
-                    {currency.name}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {currency.code}
-                  </td>
+              {rates.map(({ name, code, rate, change }) => (
+                <tr key={code} className="border border-gray-300">
+                  <td className="border border-gray-300 px-4 py-2">{name}</td>
+                  <td className="border border-gray-300 px-4 py-2">{code}</td>
                   <td className="border border-gray-300 px-4 py-2 text-right">
-                    {currency.rate.toFixed(2)}
+                    {rate.toFixed(2)}
                   </td>
                   <td
                     className={`border border-gray-300 px-4 py-2 text-right font-semibold ${
-                      currency.change > 0 ? 'text-green-600' : 'text-red-600'
+                      change > 0 ? 'text-green-600' : 'text-red-600'
                     }`}
                   >
-                    {currency.change > 0 ? '+' : ''}
-                    {currency.change.toFixed(2)}
+                    {change > 0 ? '+' : ''}
+                    {change.toFixed(2)}
                   </td>
                 </tr>
               ))}
