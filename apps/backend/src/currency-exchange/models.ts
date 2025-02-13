@@ -30,3 +30,12 @@ export const OpenExchangeRatesCurrenciesValidationSchema = z.record(z.string());
 export type CurrencyExchangeFetchOptions = {
   random?: boolean;
 };
+
+export type CurrencyExchangeRateChanges = {
+  [currencyCode: string]: {
+    currencyCode: string;
+    currencyName: string;
+    rate: number;
+    change: number;
+  };
+};

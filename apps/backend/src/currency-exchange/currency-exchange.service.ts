@@ -3,6 +3,7 @@ import axios from 'axios';
 import { handleZodParse } from '../utils/zod';
 import {
   CurrencyExchangeFetchOptions,
+  CurrencyExchangeRateChanges,
   LatestExchangeRates,
   LatestOpenExchangeRates,
   LatestOpenExchangeRatesValidationSchema,
@@ -76,7 +77,9 @@ export class CurrencyExchangeService {
 
   async updateExchangeRates({
     random = false,
-  }: CurrencyExchangeFetchOptions = {}) {
+  }: CurrencyExchangeFetchOptions = {}): Promise<
+    CurrencyExchangeRateChanges | undefined
+  > {
     if (Object.keys(this.currencies).length === 0) {
       await this.updateCurrencies();
     }
@@ -104,5 +107,29 @@ export class CurrencyExchangeService {
     };
 
     this.prevExchangeRates = rates;
+
+    const exchangeRateChanges = this.exchangeRates.rates.filter(
+      ({ change }) => {
+        return change !== 0;
+      }
+    );
+
+    if (exchangeRateChanges.length > 0) {
+      return Object.fromEntries(
+        exchangeRateChanges.map(
+          ({ currencyCode, change, currencyName, rate }) => {
+            return [
+              currencyCode,
+              {
+                currencyCode,
+                change,
+                currencyName,
+                rate,
+              },
+            ];
+          }
+        )
+      );
+    }
   }
 }

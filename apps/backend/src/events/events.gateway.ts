@@ -8,7 +8,7 @@ import {
 import { Server } from 'socket.io';
 import { Socket } from 'socket.io-client';
 import { CurrencyExchangeService } from '../currency-exchange/currency-exchange.service';
-import { LatestExchangeRates } from '../currency-exchange/models';
+import { CurrencyExchangeRateChanges } from '../currency-exchange/models';
 
 @WebSocketGateway({
   cors: {
@@ -67,15 +67,17 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   private async refreshExchangeRates() {
-    const exchangeRates =
-      await this.currencyExchangeService.getCurrentExchangeRates();
-    this.broadcastExchangeRateChanges(exchangeRates);
+    const exchangeRateChanges =
+      await this.currencyExchangeService.updateExchangeRates();
+    if (exchangeRateChanges) {
+      this.broadcastExchangeRateChanges(exchangeRateChanges);
+    }
     this.toggleExchangeRatesRefresh();
   }
 
   private async broadcastExchangeRateChanges(
-    exchangeRates: LatestExchangeRates
+    exchangeRateChanges: CurrencyExchangeRateChanges
   ) {
-    this.server.emit('currencyExchangeRatesUpdate', exchangeRates);
+    this.server.emit('currencyExchangeRatesUpdate', exchangeRateChanges);
   }
 }
