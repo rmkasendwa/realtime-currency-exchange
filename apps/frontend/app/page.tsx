@@ -18,14 +18,14 @@ export default function Index() {
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-blue-600 text-white p-4 shadow-md">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <h1 className="text-lg font-semibold">Realtime Forex</h1>
+          <h1 className="text-lg font-semibold">Realtime Exchange</h1>
           <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
         </div>
       </nav>
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg p-6">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">
-            Foreign Exchange Rates
+            Currency Exchange Rates
           </h2>
           <table className="w-full border-collapse border border-gray-300">
             <thead>

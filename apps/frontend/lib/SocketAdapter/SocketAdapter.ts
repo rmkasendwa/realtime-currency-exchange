@@ -6,6 +6,9 @@ export const initSocketConnection = async () => {
   socket.on('connect', () => {
     console.log('Connected');
   });
+  socket.on('currencyExchangeRates', function (data) {
+    console.log('event', data);
+  });
   socket.on('currencyExchangeRatesUpdate', function (data) {
     console.log('event', data);
   });
